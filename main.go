@@ -7,20 +7,15 @@ package main
 import (
 	"image/color"
 	"machine"
+	"time"
 
 	"tinygo.org/x/drivers/ws2812"
 )
 
+// Strip config
 const (
-	// dataPin is the Plasma 2350's level-shifted DAT line on the screw
-	// terminal. CLK (GP14) is only used by APA102/DotStar strips.
 	dataPin = machine.GP15
-
-	// numLEDs must match the strip actually connected.
 	numLEDs = 300
-
-	// brightness caps every channel, 0-255. At 300 LEDs this is what keeps
-	// the supply honest: full white at 255 would ask for ~18A.
 	brightness = 64
 )
 
@@ -30,23 +25,32 @@ func main() {
 	ws := ws2812.NewWS2812(dataPin)
 	ws.SetBrightness(brightness)
 
-	leds := make([]color.RGBA, numLEDs)
+	christmas(ws)
+}
 
-	for {
-		christmas(ws, leds)
+func alternate(strip []color.RGBA, colorTwo, colorOne color.RGBA) {
+	for i := range strip {
+		if i%2 == 0 {
+			strip[i] = colorOne
+		} else {
+			strip[i] = colorTwo
+		}
 	}
 }
 
-func christmas(ws ws2812.Device, leds []color.RGBA) {
+func christmas(ws ws2812.Device) {
 	greenRGB := color.RGBA{R: 0, G: 255, B: 0, A: 255}
 	redRGB := color.RGBA{R: 255, G: 0, B: 0, A: 255}
 
-	for i := range leds {
-		if i%2 == 0 {
-			leds[i] = greenRGB
-		} else {
-			leds[i] = redRGB
-		}
+	ledsOne := make([]color.RGBA, numLEDs)
+	alternate(ledsOne, greenRGB, redRGB)
+
+	ledsTwo := make([]color.RGBA, numLEDs)
+	alternate(ledsTwo, redRGB, greenRGB)
+
+	for {
+		ws.WriteColors(ledsOne)
+		time.Sleep(time.Second*1)
+		ws.WriteColors(ledsTwo)
 	}
-	ws.WriteColors(leds)
 }
