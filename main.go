@@ -49,6 +49,7 @@ func christmas(ws ws2812.Device) {
 	alternate(ledsTwo, redRGB, greenRGB)
 
 	for {
+		time.Sleep(time.Second*1)
 		ws.WriteColors(ledsOne)
 		time.Sleep(time.Second*1)
 		ws.WriteColors(ledsTwo)
