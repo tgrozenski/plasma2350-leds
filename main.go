@@ -38,13 +38,11 @@ func main() {
 }
 
 func christmas(s *strip) {
-
-	green := true
 	greenRGB := color.RGBA{R: 0, G: 255, B: 0, A: 255}
 	redRGB := color.RGBA{R: 255, G: 0, B: 0, A: 255}
 
 	for i := 0; i < s.len(); i++ {
-		if green {
+		if i % 2 == 0 {
 			s.set(i, greenRGB)
 		} else {
 			s.set(i, redRGB)
