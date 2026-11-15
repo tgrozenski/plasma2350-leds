@@ -25,8 +25,8 @@ func main() {
 	ws := ws2812.NewWS2812(dataPin)
 	ws.SetBrightness(brightness)
 
-	go christmas(ws)
-	go pulse(ws)
+	go christmas(&ws)
+	go pulse(&ws)
 
 	select {}
 }
@@ -41,7 +41,7 @@ func alternate(strip []color.RGBA, colorTwo, colorOne color.RGBA) {
 	}
 }
 
-func pulse(ws ws2812.Device) {
+func pulse(ws *ws2812.Device) {
 	for {
 		time.Sleep(time.Second * 2)
 		ws.SetBrightness(16)
@@ -66,7 +66,7 @@ func pulse(ws ws2812.Device) {
 	// }
 }
 
-func christmas(ws ws2812.Device) {
+func christmas(ws *ws2812.Device) {
 	greenRGB := color.RGBA{R: 0, G: 255, B: 0, A: 255}
 	redRGB := color.RGBA{R: 255, G: 0, B: 0, A: 255}
 
