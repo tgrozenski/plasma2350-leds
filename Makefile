@@ -23,7 +23,7 @@ PORT       ?= $(firstword $(wildcard /dev/cu.usbmodem*))
 # Seconds to wait for the board to re-enumerate in BOOTSEL.
 BOOT_WAIT  := 10
 
-.PHONY: all build flash bootsel monitor test clean help
+.PHONY: all build flash bootsel monitor clean help
 
 all: build
 
@@ -69,9 +69,6 @@ bootsel: ## drop the board into BOOTSEL and stop
 
 monitor: ## open the board's serial output
 	tinygo monitor -target=$(TARGET)
-
-test: ## run host-side tests (no hardware needed)
-	go test ./internal/...
 
 clean: ## remove build artifacts
 	rm -rf $(BUILD_DIR)

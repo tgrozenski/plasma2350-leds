@@ -36,7 +36,78 @@ Other targets:
 | `make flash` | build, reset into BOOTSEL, load |
 | `make bootsel` | drop into BOOTSEL and stop |
 | `make monitor` | open serial output |
-| `make test` | host-side tests, no hardware |
+| `make clean` | remove `build/` |
+
+### Why not `tinygo flash`?
+
+It does not work on this machine. The `pico2` target uses `flash-method: msd`,
+which copies a UF2 onto the mounted BOOTSEL drive. The reset half works fine —
+`rp2350.json` sets `flash-1200-bps-reset: true`, so the board does enter
+BOOTSEL on its own. But macOS then binds the full USB mass-storage stack
+(`IOUSBMassStorageDriver`, `IOBlockStorageDriver`) and never publishes a BSD
+disk node, so no volume mounts and the copy fails with:
+
+```
+unable to locate any volume: [RP2350]
+```
+
+Holding BOOT does not help — the board is already in the right mode. `picotool`
+sidesteps it by talking the PICOBOOT vendor interface (USB interface 1,
+class 255) directly, which needs no drive.
+
+## Prerequisites
+
+```sh
+brew trust tinygo-org/tools && brew install tinygo
+brew install picotool
+```
+
+## Serial monitor
+
+```sh
+make monitor
+```
+
+## Power
+
+A 5V supply does not "run out of voltage" — it runs out of **current**. Ask for
+more amps than it can source and the voltage sags: the far end of the strip
+dims and shifts red, colors drift, and the RP2350 can reset.
+
+300 WS2812Bs at full white would draw **~18A**. The `brightness` constant in
+`main.go` is what keeps that in check — it is passed straight to the driver's
+`SetBrightness`, which scales every channel as it streams.
+
+| `brightness` | Approx. draw, all white |
+|---|---|
+| 255 | ~18A |
+| 128 | ~9A |
+| **64 (current)** | **~4.5A** |
+| 32 | ~2.3A |
+
+Wiring, for 300 LEDs: power the strip from the PSU directly rather than through
+the board, tie PSU ground to the Plasma 2350's ground, and inject +5V/GND at
+both ends — 5V over 300 LEDs of thin strip copper drops badly otherwise.
+
+## Build and flash
+
+```sh
+make flash
+```
+
+That builds the current directory and loads it onto the board. **No BOOT
+button, no mounted drive** — it does a 1200-baud touch on the CDC port to make
+the running firmware reboot into BOOTSEL, then writes over PICOBOOT with
+`picotool`. If the board is already in BOOTSEL it skips straight to loading.
+
+Other targets:
+
+| Target | Does |
+|---|---|
+| `make build` | compile to `build/firmware.uf2` |
+| `make flash` | build, reset into BOOTSEL, load |
+| `make bootsel` | drop into BOOTSEL and stop |
+| `make monitor` | open serial output |
 | `make clean` | remove `build/` |
 
 ### Why not `tinygo flash`?
@@ -111,6 +182,5 @@ matter what it asks for.
 Edit the constants at the top of `main.go`:
 
 - `numLEDs` — **must** match the strip actually connected.
-- `masterBrightness` — artistic dimming.
-- `supplyAmps` — **your PSU rating**; the hard safety cap.
+- `brightness` — 0-255 cap passed to the driver.
 
