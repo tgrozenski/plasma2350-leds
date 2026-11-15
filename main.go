@@ -26,8 +26,8 @@ func main() {
 	ws.SetBrightness(brightness)
 
 	strip := make([]color.RGBA, numLEDs)
-	go christmas(&ws, &strip)
-	go pulse(&ws, &strip)
+	go christmas(&ws, strip)
+	go pulse(&ws, strip)
 
 	select {}
 }
