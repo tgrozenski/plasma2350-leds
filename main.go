@@ -25,7 +25,13 @@ func main() {
 	ws := ws2812.NewWS2812(dataPin)
 	ws.SetBrightness(brightness)
 
-	christmas(ws)
+	go func() {
+		christmas(ws)
+	}()
+
+	go func() {
+		pulse(ws)
+	}()
 }
 
 func alternate(strip []color.RGBA, colorTwo, colorOne color.RGBA) {
@@ -34,6 +40,24 @@ func alternate(strip []color.RGBA, colorTwo, colorOne color.RGBA) {
 			strip[i] = colorOne
 		} else {
 			strip[i] = colorTwo
+		}
+	}
+}
+
+func pulse(ws ws2812.Device) {
+	current, ceiling := brightness, brightness
+	floor := brightness/4
+
+	for {
+		for current > floor {
+			ws.SetBrightness(current)
+			time.Sleep(time.Millisecond*250)
+			current--
+		}
+		for current < ceiling {
+			ws.SetBrightness(current)
+			time.Sleep(time.Millisecond*250)
+			current++
 		}
 	}
 }
