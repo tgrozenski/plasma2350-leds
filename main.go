@@ -25,13 +25,10 @@ func main() {
 	ws := ws2812.NewWS2812(dataPin)
 	ws.SetBrightness(brightness)
 
-	go func() {
-		christmas(ws)
-	}()
+	go christmas(ws)
+	go pulse(ws)
 
-	go func() {
-		pulse(ws)
-	}()
+	select {}
 }
 
 func alternate(strip []color.RGBA, colorTwo, colorOne color.RGBA) {
