@@ -50,13 +50,13 @@ func pulse(ws *ws2812.Device, currentStrip []color.RGBA) {
 		for current > floor {
 			ws.SetBrightness(uint8(current))
 			ws.WriteColors(currentStrip)
-			time.Sleep(time.Millisecond*250)
+			time.Sleep(time.Millisecond*100)
 			current--
 		}
 		for current < ceiling {
 			ws.SetBrightness(uint8(current))
 			ws.WriteColors(currentStrip)
-			time.Sleep(time.Millisecond*250)
+			time.Sleep(time.Millisecond*100)
 			current++
 		}
 	}
