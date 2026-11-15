@@ -1,0 +1,8 @@
+# TinyGo build output
+*.uf2
+*.elf
+*.hex
+*.bin
+
+# macOS
+.DS_Store
