@@ -25,13 +25,14 @@ func main() {
 	ws := ws2812.NewWS2812(dataPin)
 	ws.SetBrightness(brightness)
 
-	go christmas(&ws)
-	go pulse(&ws)
+	strip := make([]color.RGBA, numLEDs)
+	go christmas(&ws, &strip)
+	go pulse(&ws, &strip)
 
 	select {}
 }
 
-func alternate(strip []color.RGBA, colorTwo, colorOne color.RGBA) {
+func setAlternating(strip *[]color.RGBA, colorTwo, colorOne color.RGBA) {
 	for i := range strip {
 		if i%2 == 0 {
 			strip[i] = colorOne
@@ -41,45 +42,37 @@ func alternate(strip []color.RGBA, colorTwo, colorOne color.RGBA) {
 	}
 }
 
-func pulse(ws *ws2812.Device) {
-	for {
-		time.Sleep(time.Second * 2)
-		ws.SetBrightness(16)
-		time.Sleep(time.Second * 2)
-		ws.SetBrightness(64)
-	}
+func pulse(ws *ws2812.Device, currentStrip *[]color.RGBA) {
+	current, ceiling := brightness, brightness
+	floor := brightness/4
 
-	// current, ceiling := brightness, brightness
-	// floor := brightness/4
-	//
-	// for {
-	// 	for current > floor {
-	// 		ws.SetBrightness(uint8(current))
-	// 		time.Sleep(time.Millisecond*250)
-	// 		current--
-	// 	}
-	// 	for current < ceiling {
-	// 		ws.SetBrightness(uint8(current))
-	// 		time.Sleep(time.Millisecond*250)
-	// 		current++
-	// 	}
-	// }
+	for {
+		for current > floor {
+			ws.SetBrightness(uint8(current))
+			ws.WriteColors(currentStrip)
+			time.Sleep(time.Millisecond*250)
+			current--
+		}
+		for current < ceiling {
+			ws.SetBrightness(uint8(current))
+			ws.WriteColors(currentStrip)
+			time.Sleep(time.Millisecond*250)
+			current++
+		}
+	}
 }
 
-func christmas(ws *ws2812.Device) {
+func christmas(ws *ws2812.Device, currentStrip *[]color.RGBA) {
 	greenRGB := color.RGBA{R: 0, G: 255, B: 0, A: 255}
 	redRGB := color.RGBA{R: 255, G: 0, B: 0, A: 255}
 
-	ledsOne := make([]color.RGBA, numLEDs)
-	alternate(ledsOne, greenRGB, redRGB)
-
-	ledsTwo := make([]color.RGBA, numLEDs)
-	alternate(ledsTwo, redRGB, greenRGB)
-
 	for {
+		setAlternating(currentStrip, redRGB, greenRGB)
+		ws.WriteColors(currentStrip)
 		time.Sleep(time.Second*1)
-		ws.WriteColors(ledsOne)
+
+		setAlternating(currentStrip, greenRGB, redRGB)
+		ws.WriteColors(currentStrip)
 		time.Sleep(time.Second*1)
-		ws.WriteColors(ledsTwo)
 	}
 }
