@@ -44,9 +44,9 @@ func alternate(strip []color.RGBA, colorTwo, colorOne color.RGBA) {
 func pulse(ws ws2812.Device) {
 	for {
 		time.Sleep(time.Second * 2)
-		ws.SetBrightness(uint8(brightness/4))
+		ws.SetBrightness(16)
 		time.Sleep(time.Second * 2)
-		ws.SetBrightness(brightness)
+		ws.SetBrightness(64)
 	}
 
 	// current, ceiling := brightness, brightness
