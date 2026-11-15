@@ -42,21 +42,28 @@ func alternate(strip []color.RGBA, colorTwo, colorOne color.RGBA) {
 }
 
 func pulse(ws ws2812.Device) {
-	current, ceiling := brightness, brightness
-	floor := brightness/4
-
 	for {
-		for current > floor {
-			ws.SetBrightness(uint8(current))
-			time.Sleep(time.Millisecond*250)
-			current--
-		}
-		for current < ceiling {
-			ws.SetBrightness(uint8(current))
-			time.Sleep(time.Millisecond*250)
-			current++
-		}
+		time.Sleep(time.Second * 2)
+		ws.SetBrightness(uint8(brightness/4))
+		time.Sleep(time.Second * 2)
+		ws.SetBrightness(brightness)
 	}
+
+	// current, ceiling := brightness, brightness
+	// floor := brightness/4
+	//
+	// for {
+	// 	for current > floor {
+	// 		ws.SetBrightness(uint8(current))
+	// 		time.Sleep(time.Millisecond*250)
+	// 		current--
+	// 	}
+	// 	for current < ceiling {
+	// 		ws.SetBrightness(uint8(current))
+	// 		time.Sleep(time.Millisecond*250)
+	// 		current++
+	// 	}
+	// }
 }
 
 func christmas(ws ws2812.Device) {
