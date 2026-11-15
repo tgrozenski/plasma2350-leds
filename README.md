@@ -17,51 +17,56 @@ LED strip from a **Pimoroni Plasma 2350** (RP2350).
 The WS2812 driver uses the RP2350's PIO block for hardware-accurate bit timing,
 so the data line is not bit-banged.
 
+## Build and flash
+
+```sh
+make flash
+```
+
+That builds the current directory and loads it onto the board. **No BOOT
+button, no mounted drive** — it does a 1200-baud touch on the CDC port to make
+the running firmware reboot into BOOTSEL, then writes over PICOBOOT with
+`picotool`. If the board is already in BOOTSEL it skips straight to loading.
+
+Other targets:
+
+| Target | Does |
+|---|---|
+| `make build` | compile to `build/firmware.uf2` |
+| `make flash` | build, reset into BOOTSEL, load |
+| `make bootsel` | drop into BOOTSEL and stop |
+| `make monitor` | open serial output |
+| `make test` | host-side tests, no hardware |
+| `make clean` | remove `build/` |
+
+### Why not `tinygo flash`?
+
+It does not work on this machine. The `pico2` target uses `flash-method: msd`,
+which copies a UF2 onto the mounted BOOTSEL drive. The reset half works fine —
+`rp2350.json` sets `flash-1200-bps-reset: true`, so the board does enter
+BOOTSEL on its own. But macOS then binds the full USB mass-storage stack
+(`IOUSBMassStorageDriver`, `IOBlockStorageDriver`) and never publishes a BSD
+disk node, so no volume mounts and the copy fails with:
+
+```
+unable to locate any volume: [RP2350]
+```
+
+Holding BOOT does not help — the board is already in the right mode. `picotool`
+sidesteps it by talking the PICOBOOT vendor interface (USB interface 1,
+class 255) directly, which needs no drive.
+
 ## Prerequisites
 
-TinyGo is required — stock `go` cannot target the RP2350.
-
 ```sh
-brew trust tinygo-org/tools
-brew install tinygo
+brew trust tinygo-org/tools && brew install tinygo
+brew install picotool
 ```
-
-## Tests
-
-The current-budget math has no hardware dependency, so it runs on the host with
-plain `go` — no TinyGo needed:
-
-```sh
-go test ./internal/...
-```
-
-## Build
-
-```sh
-go mod tidy
-tinygo build -target=pico2 -o plasma.uf2 .
-```
-
-## Flash
-
-The Plasma 2350 does not auto-reset into the bootloader, so enter BOOTSEL manually:
-
-1. Unplug the board.
-2. Hold **BOOT/BOOTSEL** while plugging the USB cable back in.
-3. Release once `RPI-RP2` appears in `/Volumes`.
-
-Then:
-
-```sh
-tinygo flash -target=pico2 .
-```
-
-Or drag `plasma.uf2` onto the mounted `RPI-RP2` volume.
 
 ## Serial monitor
 
 ```sh
-tinygo monitor
+make monitor
 ```
 
 ## Power — read this before plugging in 300 LEDs
