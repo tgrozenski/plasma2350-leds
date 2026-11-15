@@ -17,6 +17,9 @@ const (
 	dataPin = machine.GP15
 	numLEDs = 300
 	brightness = 64
+	RED = color.RGBA{R: 255, G: 0, B: 0, A: 255}
+	GREEN = color.RGBA{R: 0, G: 255, B: 0, A: 255}
+
 )
 
 func main() {
@@ -26,9 +29,7 @@ func main() {
 	ws.SetBrightness(brightness)
 
 	strip := make([]color.RGBA, numLEDs)
-	//go christmas(&ws, strip)
-	setAlternating(strip, color.RGBA{R: 0, G: 255, B: 0, A: 255}, color.RGBA{R: 255, G: 0, B: 0, A: 255})
-	go pulse(&ws, strip)
+	go christmas(&ws, strip)
 
 	select {}
 }
@@ -43,7 +44,7 @@ func setAlternating(strip []color.RGBA, colorTwo, colorOne color.RGBA) {
 	}
 }
 
-func pulse(ws *ws2812.Device, currentStrip []color.RGBA) {
+func christmas(ws *ws2812.Device, currentStrip []color.RGBA) {
 	current, ceiling := brightness, brightness
 	floor := brightness/2
 
@@ -51,29 +52,19 @@ func pulse(ws *ws2812.Device, currentStrip []color.RGBA) {
 		for current > floor {
 			ws.SetBrightness(uint8(current))
 			ws.WriteColors(currentStrip)
-			time.Sleep(time.Millisecond*50)
+			time.Sleep(time.Millisecond*100)
 			current--
 		}
 		for current < ceiling {
 			ws.SetBrightness(uint8(current))
 			ws.WriteColors(currentStrip)
-			time.Sleep(time.Millisecond*50)
+			time.Sleep(time.Millisecond*100)
 			current++
 		}
-	}
-}
-
-func christmas(ws *ws2812.Device, currentStrip []color.RGBA) {
-	greenRGB := color.RGBA{R: 0, G: 255, B: 0, A: 255}
-	redRGB := color.RGBA{R: 255, G: 0, B: 0, A: 255}
-
-	for {
-		setAlternating(currentStrip, redRGB, greenRGB)
-		ws.WriteColors(currentStrip)
-		time.Sleep(time.Second*1)
-
-		setAlternating(currentStrip, greenRGB, redRGB)
-		ws.WriteColors(currentStrip)
-		time.Sleep(time.Second*1)
+		if currentStrip[0] == color.RGBA{R: 255, G: 0, B: 0, A: 255} {
+			setAlternating(currentStrip, GREEN, RED)
+		} else {
+			setAlternating(currentStrip, RED, GREEN)
+		}
 	}
 }
