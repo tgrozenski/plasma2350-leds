@@ -63,7 +63,8 @@ func christmas(ws *ws2812.Device, currentStrip []color.RGBA) {
 		}
 		if currentStrip[0] == color.RGBA{R: 255, G: 0, B: 0, A: 255} {
 			setAlternating(currentStrip, GREEN, RED)
-		} else {
+		}
+		else {
 			setAlternating(currentStrip, RED, GREEN)
 		}
 	}
