@@ -50,12 +50,12 @@ func pulse(ws ws2812.Device) {
 
 	for {
 		for current > floor {
-			ws.SetBrightness(current)
+			ws.SetBrightness(uint8(current))
 			time.Sleep(time.Millisecond*250)
 			current--
 		}
 		for current < ceiling {
-			ws.SetBrightness(current)
+			ws.SetBrightness(uint8(current))
 			time.Sleep(time.Millisecond*250)
 			current++
 		}
