@@ -26,6 +26,15 @@ brew trust tinygo-org/tools
 brew install tinygo
 ```
 
+## Tests
+
+The current-budget math has no hardware dependency, so it runs on the host with
+plain `go` — no TinyGo needed:
+
+```sh
+go test ./internal/...
+```
+
 ## Build
 
 ```sh
@@ -55,13 +64,48 @@ Or drag `plasma.uf2` onto the mounted `RPI-RP2` volume.
 tinygo monitor
 ```
 
+## Power — read this before plugging in 300 LEDs
+
+A 5V supply does not "run out of voltage." It runs out of **current**. Ask for
+more amps than the supply can source and its output voltage sags instead:
+
+- the far end of the strip dims and shifts red (blue browns out first)
+- colors drift and the data line gets flaky
+- the RP2350 randomly resets
+- a cheap supply may hiccup, current-limit, or overheat
+
+### The numbers for 300 WS2812Bs
+
+| Condition | Draw |
+|---|---|
+| Full white, 100% | 300 x 60mA = **~18A** (90W) |
+| Quiescent (all off) | ~0.3A — the controllers draw current regardless |
+| 25% brightness, white | ~4.5A |
+
+### How this firmware caps it
+
+Set `supplyAmps` in `main.go` to your PSU's actual rating. Every frame is
+measured in `internal/power` and scaled down if it would exceed
+`supplyAmps * supplyHeadroom`, so no animation can overdraw the supply no
+matter what it asks for.
+
+`masterBrightness` is for taste. `supplyAmps` is for safety. Keep them distinct.
+
+### Wiring 300 LEDs
+
+- **Do not** run strip power through USB, and do not run 18A through the
+  board's screw terminal. Feed the strip from the PSU directly.
+- **Common ground:** PSU ground and Plasma 2350 ground must be tied together,
+  or the data signal has no reference and the strip behaves erratically.
+- **Power injection:** 5V over 300 LEDs of thin strip copper drops badly. Feed
+  +5V/GND from the PSU at both ends, and ideally every ~100 LEDs, or the far
+  end stays brown however big the supply is.
+
 ## Configuration
 
 Edit the constants at the top of `main.go`:
 
 - `numLEDs` — **must** match the strip actually connected.
-- `brightness` — scales all channels.
+- `masterBrightness` — artistic dimming.
+- `supplyAmps` — **your PSU rating**; the hard safety cap.
 
-> **Power budget:** USB supplies roughly 0.5A. 60 WS2812s at full white draw
-> ~3.6A. Keep `brightness` low unless the strip has its own 5V supply wired to
-> the screw terminal.

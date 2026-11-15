@@ -10,7 +10,11 @@ import (
 	"image/color"
 	"machine"
 	"time"
+
+	"github.com/tgrozenski/plasma2350-leds/internal/power"
 )
+
+// ---- Hardware configuration -------------------------------------------------
 
 const (
 	// dataPin is the Plasma 2350's level-shifted strip data line (DAT).
@@ -19,15 +23,39 @@ const (
 	dataPin = machine.GP15
 
 	// numLEDs must match the strip actually connected.
-	numLEDs = 60
-
-	// brightness scales every channel. Keep this low while bench testing:
-	// 60 LEDs at full white is ~3.6A, well past USB's budget.
-	brightness = 0.15
+	numLEDs = 300
 )
 
+// ---- Power configuration ----------------------------------------------------
+
+const (
+	// supplyAmps is the rated continuous output of the 5V supply, in amps.
+	//
+	// !! SET THIS TO YOUR ACTUAL PSU RATING !!
+	//
+	// It is the single most important value in this file. 300 WS2812s at
+	// full white want ~18A; this is what stops the firmware from asking for
+	// more than the supply can give. Setting it too high does not blow
+	// anything up directly, but it lets the rail sag — see internal/power.
+	supplyAmps = 5.0
+
+	// supplyHeadroom is the fraction of the rating actually used. Supplies
+	// are happiest well below their label, and the label is often optimistic.
+	supplyHeadroom = 0.8
+
+	// masterBrightness scales all output before the power budget is applied.
+	// Use it for taste; use supplyAmps for safety.
+	masterBrightness = 0.25
+)
+
+// budget caps what any animation can draw, regardless of what it asks for.
+var budget = power.Budget{
+	SupplyAmps: supplyAmps,
+	Headroom:   supplyHeadroom,
+}
+
 func main() {
-	strip := newStrip(dataPin, numLEDs)
+	strip := newStrip(dataPin, numLEDs, budget)
 
 	for {
 		rainbow(strip, 2*time.Second)
@@ -42,7 +70,7 @@ func rainbow(s *strip, d time.Duration) {
 	for f := 0; f < frames; f++ {
 		for i := 0; i < s.len(); i++ {
 			hue := uint8((i*256/s.len() + f*4) % 256)
-			s.set(i, scale(hueToRGB(hue), brightness))
+			s.set(i, hueToRGB(hue))
 		}
 		s.show()
 		time.Sleep(step)
@@ -67,21 +95,5 @@ func hueToRGB(h uint8) color.RGBA {
 		return color.RGBA{R: rem, G: 0, B: 255, A: 255}
 	default:
 		return color.RGBA{R: 255, G: 0, B: 255 - rem, A: 255}
-	}
-}
-
-// scale multiplies each color channel by f, clamped to [0,1].
-func scale(c color.RGBA, f float32) color.RGBA {
-	if f < 0 {
-		f = 0
-	}
-	if f > 1 {
-		f = 1
-	}
-	return color.RGBA{
-		R: uint8(float32(c.R) * f),
-		G: uint8(float32(c.G) * f),
-		B: uint8(float32(c.B) * f),
-		A: c.A,
 	}
 }
