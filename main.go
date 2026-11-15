@@ -45,7 +45,7 @@ func setAlternating(strip []color.RGBA, colorTwo, colorOne color.RGBA) {
 
 func pulse(ws *ws2812.Device, currentStrip []color.RGBA) {
 	current, ceiling := brightness, brightness
-	floor := brightness/4
+	floor := brightness/2
 
 	for {
 		for current > floor {
