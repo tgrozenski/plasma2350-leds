@@ -49,13 +49,13 @@ func pulse(ws *ws2812.Device, currentStrip *[]color.RGBA) {
 	for {
 		for current > floor {
 			ws.SetBrightness(uint8(current))
-			ws.WriteColors(currentStrip)
+			ws.WriteColors(*currentStrip)
 			time.Sleep(time.Millisecond*250)
 			current--
 		}
 		for current < ceiling {
 			ws.SetBrightness(uint8(current))
-			ws.WriteColors(currentStrip)
+			ws.WriteColors(*currentStrip)
 			time.Sleep(time.Millisecond*250)
 			current++
 		}
@@ -68,11 +68,11 @@ func christmas(ws *ws2812.Device, currentStrip *[]color.RGBA) {
 
 	for {
 		setAlternating(currentStrip, redRGB, greenRGB)
-		ws.WriteColors(currentStrip)
+		ws.WriteColors(*currentStrip)
 		time.Sleep(time.Second*1)
 
 		setAlternating(currentStrip, greenRGB, redRGB)
-		ws.WriteColors(currentStrip)
+		ws.WriteColors(*currentStrip)
 		time.Sleep(time.Second*1)
 	}
 }
