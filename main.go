@@ -17,9 +17,10 @@ const (
 	dataPin    = machine.GP15
 	numLEDs    = 300
 	brightness = 64
-	RED        = color.RGBA{R: 255, G: 0, B: 0, A: 255}
-	GREEN      = color.RGBA{R: 0, G: 255, B: 0, A: 255}
 )
+
+var RED = color.RGBA{R: 255, G: 0, B: 0, A: 255}
+var GREEN = color.RGBA{R: 0, G: 255, B: 0, A: 255}
 
 func main() {
 	dataPin.Configure(machine.PinConfig{Mode: machine.PinOutput})
@@ -45,7 +46,7 @@ func setAlternating(strip []color.RGBA, colorTwo, colorOne color.RGBA) {
 
 func christmas(ws *ws2812.Device, currentStrip []color.RGBA) {
 	current, ceiling := brightness, brightness
-	floor := brightness / 2
+	floor := brightness / 4
 
 	for {
 		for current > floor {
@@ -60,9 +61,10 @@ func christmas(ws *ws2812.Device, currentStrip []color.RGBA) {
 			time.Sleep(time.Millisecond * 100)
 			current++
 		}
-		if currentStrip[0] == RED {
+		switch currentStrip[0] {
+		case RED:
 			setAlternating(currentStrip, GREEN, RED)
-		} else {
+		case GREEN:
 			setAlternating(currentStrip, RED, GREEN)
 		}
 	}
