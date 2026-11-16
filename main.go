@@ -14,12 +14,11 @@ import (
 
 // Strip config
 const (
-	dataPin = machine.GP15
-	numLEDs = 300
+	dataPin    = machine.GP15
+	numLEDs    = 300
 	brightness = 64
-	RED = color.RGBA{R: 255, G: 0, B: 0, A: 255}
-	GREEN = color.RGBA{R: 0, G: 255, B: 0, A: 255}
-
+	RED        = color.RGBA{R: 255, G: 0, B: 0, A: 255}
+	GREEN      = color.RGBA{R: 0, G: 255, B: 0, A: 255}
 )
 
 func main() {
@@ -46,25 +45,24 @@ func setAlternating(strip []color.RGBA, colorTwo, colorOne color.RGBA) {
 
 func christmas(ws *ws2812.Device, currentStrip []color.RGBA) {
 	current, ceiling := brightness, brightness
-	floor := brightness/2
+	floor := brightness / 2
 
 	for {
 		for current > floor {
 			ws.SetBrightness(uint8(current))
 			ws.WriteColors(currentStrip)
-			time.Sleep(time.Millisecond*100)
+			time.Sleep(time.Millisecond * 100)
 			current--
 		}
 		for current < ceiling {
 			ws.SetBrightness(uint8(current))
 			ws.WriteColors(currentStrip)
-			time.Sleep(time.Millisecond*100)
+			time.Sleep(time.Millisecond * 100)
 			current++
 		}
-		if currentStrip[0] == color.RGBA{R: 255, G: 0, B: 0, A: 255} {
+		if currentStrip[0] == RED {
 			setAlternating(currentStrip, GREEN, RED)
-		}
-		else {
+		} else {
 			setAlternating(currentStrip, RED, GREEN)
 		}
 	}
